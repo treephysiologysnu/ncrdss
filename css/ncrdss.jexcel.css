@@ -1,0 +1,64 @@
+
+
+
+
+/*---------------- 일반 jExcel 설정 ------------------*/
+
+.jexcel_content > table > tbody > tr  { /* 각 픽셀별 크기 지정 */
+    height:30px }
+
+
+/*---------------- 메인 컨텐츠 영역 (tab3 - 임분정보입력) ------------------*/
+
+#tab3 article.article-1 div#index_SpcClasses {
+    padding-right: 0;
+    float: left; }
+#tab3 article.article-1 div#index_SpcClasses  > div.jexcel_content > table {
+    border-right: 0;
+    background-color: #f5f5f5;
+    font-weight: 600; }
+#tab3 article.article-1 div#index_SpcClasses  div.jexcel_content {
+    padding-right: 0; }
+
+#tab3 article.article-1 div#index_currentSpc {
+    padding-right: 0;
+    float: left; }
+#tab3 article.article-1 div#index_currentSpc  > div.jexcel_content > table {
+    border-right: 0;
+    background-color: #f5f5f5;
+    font-weight: 600; }
+#tab3 article.article-1 div#index_currentSpc  div.jexcel_content {
+    padding-right: 0; }
+
+
+/*---------------- 메인 컨텐츠 영역 (tab4 - 간벌시나리오) ------------------*/
+#tab4 article div#index_thinning {
+    padding-right: 0;
+    float:left; }
+#tab4 article div#index_thinning  > div.jexcel_content > table {
+    border-right: 0;
+    background-color: #f5f5f5;
+    font-weight: 600; }
+#tab4 article div#index_thinning  div.jexcel_content {
+    padding-right: 0; }
+
+#tab4 article div#index_ForManPlan {
+    padding-right: 0;
+    float:left; }
+#tab4 article div#index_ForManPlan  > div.jexcel_content > table {
+    border-right: 0;
+    background-color: #f5f5f5;
+    font-weight: 600; }
+#tab4 article div#index_ForManPlan  div.jexcel_content {
+    padding-right: 0; }
+
+/*---------------- 메인 컨텐츠 영역 (tab5 - 기타 환경설정) ------------------*/
+#tab5 article div#index_carbonCoeffs {
+    padding-right: 0;
+    float:left; }
+#tab5 article div#index_carbonCoeffs > div.jexcel_content > table {
+    border-right: 0;
+    background-color: #f5f5f5;
+    font-weight: 600; }
+#tab5 article div#index_carbonCoeffs div.jexcel_content {
+    padding-right: 0; }

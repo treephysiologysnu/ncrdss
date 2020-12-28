@@ -1,0 +1,108 @@
+.highcharts-credits {
+    display: none !important;
+}
+
+.tab-panel {
+    border: 2px solid black;
+    min-height: 50px;
+    max-width: 250px;
+    padding: 1rem;
+}
+
+
+
+/*---------------- 메인 컨텐츠 영역 (일반) ------------------*/
+.page-content .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 30px; }
+.page-content .grid > article {
+    min-height: 100px;
+    background: var(--page-content-blockColor);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow); }
+.page-content .grid > article article.override {
+    background: var(--page-content-blockColor);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow); }
+.page-content .grid > article.article-full {
+    grid-column: 1 / -1; }
+.page-content.hidden {
+    display:none; }
+.page-content div.title-wrapper {
+    height:40px;
+    display : table-cell;
+    vertical-align: middle; }
+.page-content article h3 {
+    margin-left: 10px;
+    min-height: 10px;
+    vertical-align: middle;
+    color: #616161;
+    font-weight: 400;
+    font-family: 'Noto Sans KR', sans-serif;}
+.page-content article hr {
+    height: 1px;
+    border: 0; border-top: 2px solid #CBCBCB;
+    margin: 0; padding: 0; }
+.page-content article p {
+    margin: 10px 0 0 3%;
+    min-height: 10px;
+    color: #616161;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 400; }
+
+section > article > div.table-wrapper {
+    margin:15px 0 0 10px }
+
+/*---------------- 메인 컨텐츠 영역 (tab1 - 매뉴얼) ------------------*/
+#tab1 {
+
+}
+
+/*---------------- 메인 컨텐츠 영역 (tab2 - 주소설정) ------------------*/
+/* 주소입력파트 */
+#tab2 article.article-1 {
+    height:350px }
+#tab2 article.article-1 input[type=text] {
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 7px;
+    border: 2px solid #2d9fd9;
+    color: var(--page-header-bgColor);
+    width: 70%;
+    height: 30px;
+    padding-left: 10px;
+    margin: 20px 0 5px 3%;
+    float: left;}
+#tab2 article.article-1 input[type=text]:focus {
+    outline: none;
+    border: 2px solid #a0d18c;
+    color: #2d9fd9; }
+#tab2 article.article-1 input[type=button] {
+    height: 30px;
+    width: 20%;
+    padding-left: 0;
+    margin: 20px 0 0 3%;
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 7px;
+    border: 2px solid #2d9fd9;
+    color: var(--page-header-bgColor);
+    float: left;
+    font-weight: 700; }
+
+/* 지도출력부분 */
+#tab2 article.article-2 { /* 일부러 작게 설정해서 override 되도록 함 */
+    height:200px }
+#tab2 article div#map {
+    width:100%;height:830px;margin:0; border-radius: var(--border-radius); }
+
+/* 기타정보출력부분 */
+#tab2 article.article-3 {
+    height: 450px; }
+
+/*---------------- 메인 컨텐츠 영역 (tab3 - 임분정보입력) ------------------*/
+
+#div_charts #container div.highcharts-container > svg > rect.highcharts-background {
+    fill:none; }
+
