@@ -38,14 +38,23 @@
     min-height: 10px;
     vertical-align: middle;
     color: #616161;
-    font-weight: 400;
+    font-weight: 500;
     font-family: 'Noto Sans KR', sans-serif;}
 .page-content article hr {
     height: 1px;
     border: 0; border-top: 2px solid #CBCBCB;
     margin: 0; padding: 0; }
+
+.page-content article .table-wrapper h4.table-header {
+    margin: 10px 0 1px 0;
+    min-height: 10px;
+    color: #616161;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size:1.1em;
+    font-weight: 400; }
+
 .page-content article p {
-    margin: 10px 0 0 3%;
+    margin: 10px 0 0 15px;
     min-height: 10px;
     color: #616161;
     font-family: 'Noto Sans KR', sans-serif;
@@ -72,7 +81,7 @@ section > article > div.table-wrapper {
     width: 70%;
     height: 30px;
     padding-left: 10px;
-    margin: 20px 0 5px 3%;
+    margin: 20px 0 5px 15px;
     float: left;}
 #tab2 article.article-1 input[type=text]:focus {
     outline: none;
@@ -106,3 +115,24 @@ section > article > div.table-wrapper {
 #div_charts #container div.highcharts-container > svg > rect.highcharts-background {
     fill:none; }
 
+#table_currentSpc {
+    float:left;
+}
+
+.table-button.add {
+    float:left;
+    border-radius: 3px;
+    border:none;display:inline-block;padding:1px 6px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;background-color:inherit;text-align:center;white-space:nowrap;
+    color:#fff;/*background-color:#4285F4;*/background-color:var(--page-header-bgColor);
+    font-size: 1.3em;font-weight: 800;
+}
+
+.table-button.minus {
+    float:left;
+    margin-left: 5px;
+    border-radius: 3px;
+    border:none;display:inline-block;padding:1px 4px;vertical-align:middle;overflow:hidden;text-decoration:none;color:inherit;background-color:inherit;text-align:center;white-space:nowrap;
+    color:#fff;/*background-color:#DB4437;*/background-color:var(--page-header-bgColor);
+    font-size: 1.3em;font-weight: 800;
+}
+.table-button:hover{color:#000;background-color:#ccc}

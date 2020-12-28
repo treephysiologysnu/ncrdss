@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="css/ncrdss.jexcel.css" type="text/css" />
     <meta charset="UTF-8">
     <title>신기후체제대응 의사결정 지원시스템</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 <body>
 
@@ -143,7 +144,7 @@
                     <svg>
                         <use xlink:href="#tree"></use>
                     </svg>
-                    <span>수종 정보 입력</span>
+                    <span>임분 정보 입력</span>
                 </a>
             </li>
             <li class="tab-li">
@@ -223,7 +224,7 @@
     <section class="grid">
         <article class="article-1">
             <div class="title-wrapper">
-                <h3>대상 임분의 주소 입력</h3>
+                <h3>임분 주소 설정</h3>
             </div>
             <hr />
             <input id="address-input" type="text" placeholder="주소 입력 (도로명주소 혹은 지번주소)" onkeypress="if(event.keyCode==13 ){addressSearch();}">
@@ -256,15 +257,19 @@
             </div>
             <hr>
             <div class="table-wrapper">
+                <h4 class="table-header">임분의 기본 정보를 입력해주세요.</h4>
                 <div id="table_base"></div>
-                <br/>
-                <br/>
+            </div>
+            <div class="table-wrapper">
+                <h4 class="table-header">계획 단계에서 고려할 수종의 종류를 정의합니다.</h4>
                 <div id="index_SpcClasses" class="table_index"></div>
                 <div id="table_SpcClasses"></div>
-                <br/>
-                <br/>
-                <div id="index_currentSpc" class="table_index"></div>
+            </div>
+            <div class="table-wrapper">
+                <h4 class="table-header">현재 임분 정보를 입력해주세요.</h4>
                 <div id="table_currentSpc"></div>
+                <button class="table-button add" onclick="addCurrentSpcRow()">+</button>
+                <button class="table-button minus" onclick="delecteCurrentSpcRow()">—</button>
             </div>
         </article>
         <article class="article-2 article-full">
@@ -338,7 +343,6 @@
         <small>Made with <span>❤</span> by <a href="https://github.com/treephysiologysnu">Tae Kyung Kim</a>
         </small>
     </footer>
-
 </body>
 <script src="js/jexcel.js"></script>
 <script src="js/jsuites.js"></script>

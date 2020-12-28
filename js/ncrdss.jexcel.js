@@ -1,5 +1,8 @@
 const CELL_WIDTH = 120;
 const CARBONCOEFFS = [1.433102, 1.667497, 1.738947, 1.431354, 2.516572, 2.704444];
+
+var currentSpeciesSelected = {x1:null,y1:null,x2:null,y2:null}
+
 /*************************************************************************************************
  *                              jExcel OnChange Events
  *************************************************************************************************/
@@ -36,15 +39,21 @@ var onChange_Base = function(instance, cell, x, y, value) {
         return
 
     setBase(table_base.getData()); // manager 값 업데이트
-
     var cellName = jexcel.getColumnNameFromId([x,y]);
     if (cellName == 'A1')
-        updateNumSection(value); // currentSpc 테이블의 구역 수 업데이트 (열 추가)
-    if (cellName == 'B1')
+        updateCurrentSpcTable(manager.spcLists, 'sections');
+    if (cellName == 'B1') {
         updateNumSpc(value); // currentSpc 테이블의 수종 수 업데이트 (열 추가)
+        setSpcClasses(table_SpcClasses.getData());
+    }
+    if (cellName == 'C1')
+        ""; //TODO : 계획분기 수 설정시 간벌 시나리오 테이블 재설정하는 함수
     if (!table_base.getData().flat().includes("")) { // 전부 채워진 경우
-        setCellBorderColor(table_base, style_orig); // BaseTable 레이아웃 업데이트
-        setCellBorderColor(table_SpcClasses, style_red);
+
+        setBgColor(table_base, style_bg_orig)
+        setBgColor(table_SpcClasses, style_bg_red);
+        //setCellBorderColor(table_base, style_orig); // BaseTable 레이아웃 업데이트
+        //setCellBorderColor(table_SpcClasses, style_red);
     }
 };
 var onChange_SpcClasses = function(instance, cell, x, y, value) {
@@ -56,7 +65,8 @@ var onChange_SpcClasses = function(instance, cell, x, y, value) {
     if (cellName.includes('B')) { // 수종이 추가되면 차트 그리기
         setGrowth(); // Growth 예측하고
         chart.addSeries({
-            name: value,
+            id: value,
+            name:value,
             //data: final_volumn[target_address + ' ' + value]
             //data: manager.spcGrowth[value].growthCombined
             data: manager.spcGrowth[value].predictions
@@ -64,16 +74,16 @@ var onChange_SpcClasses = function(instance, cell, x, y, value) {
         chart.redraw();
     }
     if (!table_SpcClasses.getData().flat().includes("")) { // 전부 채워진 경우
-        var species = Array();
-        for (const arr of table_SpcClasses.getData()){
-            species.push(arr[1])
-        }
-        updateForManTable(species);
-        updateCurrentSpcTable(species);
-        updateCarbonCoeffs(species);
-        setCellBorderColor(table_SpcClasses, style_orig); // SpcClass Input 레이아웃 업데이트
-        setCellBorderColor(table_currentSpc, style_red);
-        setCellBorderColor(table_thinning, style_red);
+        updateForManTable(manager.spcLists);
+        updateCurrentSpcTable(manager.spcLists, 'species');
+        updateCarbonCoeffs(manager.spcLists);
+
+        setBgColor(table_SpcClasses, style_bg_orig);
+        setBgColor(table_currentSpc, style_bg_red);
+        setBgColor(table_thinning, style_bg_red);
+        //setCellBorderColor(table_SpcClasses, style_orig); // SpcClass Input 레이아웃 업데이트
+        //setCellBorderColor(table_currentSpc, style_red);
+        //setCellBorderColor(table_thinning, style_red);
     }
 };
 var onChange_currentSpc = function(instance, cell, x, y, value) {
@@ -82,19 +92,23 @@ var onChange_currentSpc = function(instance, cell, x, y, value) {
     *  값이 변경되었을 때 호출되는 함수 */
     setCurrentSpc(table_currentSpc.getData());
     var cellName = jexcel.getColumnNameFromId([x,y]);
-    if (!cellName.includes('A')) { // B C D 열의 경우
+    if (!cellName.includes('A') & !cellName.includes('B')) { // C D E 열의 경우
+        console.log(cellName);
         if (!checkNumeric(instance, x, y, value))
             return false
     }
     if (!table_currentSpc.getData().flat().includes("")) { // 전부 채워진 경우
-        setCellBorderColor(table_currentSpc, style_orig);
-        setCellBorderColor(table_ForManPlan, style_red);
-        setCellBorderColor(table_thinning, style_red);
+        setBgColor(table_currentSpc, style_bg_orig);
+        setBgColor(table_ForManPlan, style_bg_red);
+        setBgColor(table_thinning, style_bg_red);
+        //setCellBorderColor(table_currentSpc, style_orig);
+        //setCellBorderColor(table_ForManPlan, style_red);
+        //setCellBorderColor(table_thinning, style_red);
     }
 };
 var onChange_Thinning = function(instance, cell, x, y, value) {
     /* 산림시업정보 입력 테이블 #table_thinning
-    *  구역, 수종명, 주벌시기, 간벌시나리오
+    *  
     *  값이 변경되었을 때 호출되는 함수 */
     if (!checkNumeric(instance, x, y, value))
         return
@@ -102,16 +116,18 @@ var onChange_Thinning = function(instance, cell, x, y, value) {
 };
 var onChangeForManPlan = function(instance, cell, x, y, value) {
     /* 산림시업정보 입력 테이블 #table_ForManPlan
-    *  구역, 수종명, 주벌시기, 간벌시나리오
+    *  구역, 수종명, 수확분기, 간벌시나리오
     *  값이 변경되었을 때 호출되는 함수 */
     var cellName = jexcel.getColumnNameFromId([x,y]);
-    if (cellName.includes('C')) { // C 열인 경우만 (주벌시기)
+    if (cellName.includes('C')) { // C 열인 경우만 (수확분기)
         if (!checkNumeric(instance, x, y, value))
             return false
     }
     setForManPlan(table_ForManPlan.getData());
     if (!table_ForManPlan.getData().flat().includes("")) { // 전부 채워진 경우
-        setCellBorderColor(table_ForManPlan, style_orig);
+        setBgColor(table_thinning, style_bg_orig);
+        setBgColor(table_ForManPlan, style_bg_orig);
+        // setCellBorderColor(table_ForManPlan, style_orig);
     }
 };
 var onChange_carbonCoeffs = function(instance, cell, x, y, value) {
@@ -121,16 +137,23 @@ var onChange_carbonCoeffs = function(instance, cell, x, y, value) {
     if (!checkNumeric(instance, x, y, value))
         return false
 };
+var onSelectionActive = function(instance, x1, y1, x2, y2, origin) {
+    currentSpeciesSelected = Object.assign(currentSpeciesSelected, {x1:x1, y1:y1, x2:x2, y2:y2});
+}; // 현재임분 테이블의 선택된 영역
 /*************************************************************************************************
  *                            jExcel OnChange -> Update Table Shapes
  *************************************************************************************************/
-function updateNumSection(num) {
-    index_currentSpc.deleteRow(1,index_currentSpc.rows.length)
-    table_currentSpc.deleteRow(1,table_currentSpc.rows.length);
-    for (var i=1;i<num;i++) {
-        index_currentSpc.insertRow(['구역 ' + String(i+1)]);
-        table_currentSpc.insertRow();
-    }
+function addCurrentSpcRow() {
+    setBgColor(table_currentSpc, style_bg_orig);
+    // setCellBorderColor(table_currentSpc, style_orig);
+    table_currentSpc.insertRow();
+    setBgColor(table_currentSpc, style_bg_red);
+    // setCellBorderColor(table_currentSpc, style_red);
+}
+function delecteCurrentSpcRow() {
+    table_currentSpc.deleteRow(currentSpeciesSelected.y1, currentSpeciesSelected.y2 - currentSpeciesSelected.y1 + 1);
+    setBgColor(table_currentSpc, style_bg_red);
+    // setCellBorderColor(table_currentSpc, style_red);
 }
 function updateNumSpc(num) {
     index_SpcClasses.deleteRow(1,index_SpcClasses.rows.length);
@@ -140,9 +163,18 @@ function updateNumSpc(num) {
         table_SpcClasses.insertRow();
     }
 }
-function updateCurrentSpcTable(species) {
-    table_currentSpc.deleteColumn(0);
-    table_currentSpc.insertColumn(1, 0, true, [{title:'수종명', type:'dropdown', source: species, width:CELL_WIDTH}]);
+function updateCurrentSpcTable(species, flag) {
+    if (flag == 'sections') {
+        var sectionArray = new Array();
+        for (var i=0; i<manager.numSection; i++)
+            sectionArray.push(String(i+1));
+        table_currentSpc.deleteColumn(0);
+        table_currentSpc.insertColumn(1, 0, true, [{title:'구역 번호', type:'dropdown', source: sectionArray, width:CELL_WIDTH}]);
+    }
+    if (flag == 'species') {
+        table_currentSpc.deleteColumn(1);
+        table_currentSpc.insertColumn(1, 1, true, [{title:'수종명', type:'dropdown', source: species, width:CELL_WIDTH}]);
+    }
 }
 function updateForManTable(species) {
     if (table_base.getCell('A1').innerText != "" & table_base.getCell('B1').innerText != "") {
@@ -182,7 +214,7 @@ var dataframe_SpcClasses = [
     [ , , ],
 ];
 var dataframe_currentSpc = [
-    [ , , , ],
+    [ , , , , ],
 ];
 var dataframe_ForManPlan = [
     [ , , , , ],
@@ -191,7 +223,7 @@ var dataframe_carbonCoeffs = [[]];
 
 var table_base = jexcel(document.getElementById('table_base'), {
     data:dataframe_base,
-    colHeaders: ['구역 수', '고려할 수종 수', '계획기간', '시작 연도'],
+    colHeaders: ['구역 수', '고려할 수종 수', '계획 분기수', '시작 연도'],
     colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
         { type: 'numeric' },
@@ -234,6 +266,7 @@ var table_SpcClasses = jexcel(document.getElementById('table_SpcClasses'), {
 });
 table_SpcClasses.hideIndex();
 
+/*
 var index_currentSpc = jexcel(document.getElementById('index_currentSpc'), {
     data:[['구역 1']],
     colHeaders:['현재임분정보'],
@@ -247,12 +280,13 @@ var index_currentSpc = jexcel(document.getElementById('index_currentSpc'), {
     allowManualInsertRow:false,
     allowManualInsertColumn: false,
 });
-index_currentSpc.hideIndex();
+index_currentSpc.hideIndex();*/
 var table_currentSpc = jexcel(document.getElementById('table_currentSpc'), {
     data:dataframe_currentSpc,
-    colHeaders: ['수종명', '영급', '면적 (ha)', '재적 (m³/ha)'],
-    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
+    colHeaders: ['구역번호', '수종명', '영급', '면적 (ha)', '재적 (m³/ha)'],
+    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
+        { type: 'dropdown'},
         { type: 'dropdown'},
         { type: 'numeric' },
         { type: 'numeric' },
@@ -260,6 +294,7 @@ var table_currentSpc = jexcel(document.getElementById('table_currentSpc'), {
     ],
     rowResize: true,
     onchange:onChange_currentSpc,
+    onselection:onSelectionActive,
     allowManualInsertRow:false,
     allowManualInsertColumn: false,
 });
@@ -282,7 +317,7 @@ var index_ForManPlan = jexcel(document.getElementById('index_ForManPlan'), {
 index_ForManPlan.hideIndex();
 var table_ForManPlan = jexcel(document.getElementById('table_ForManPlan'), {
     data:dataframe_ForManPlan,
-    colHeaders: ['구역', '수종명', '주벌시기', '간벌시나리오'],
+    colHeaders: ['구역', '수종명', '수확분기', '간벌시나리오'],
     colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
         {

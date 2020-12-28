@@ -4,12 +4,12 @@ var manager = {
     planningPeriod:null,
     startYear:null,
     spcClasses:null,
+    spcLists:null,
 };
 
 function setAddress(data) {
     manager.address = data;
 }
-
 function setBase(data) {
     var result_temp = {};
     result_temp.numSection = Number(data[0][0]);
@@ -23,14 +23,13 @@ function setSpcClasses(data) {
     var result_temp = new Array();
     for (var i=0; i<data.length; i++)
         result_temp.push({class: i+1, speciesID: data[i][0], species:data[i][1]});
-
     manager.spcClasses = result_temp;
+    manager.spcLists = result_temp.map(a => a.species);
 }
 function setCurrentSpc(data) {
     var result_temp = new Array();
     for (var i=0; i<data.length; i++)
-        result_temp.push({section: i+1, species: data[i][0], age: Number(data[i][1]), area: Number(data[i][2]), volumn: Number(data[i][3])});
-
+        result_temp.push({section: Number(data[i][0]), species: data[i][1], age: Number(data[i][2]), area: Number(data[i][3]), volumn: Number(data[i][4])});
     manager.currentSpc = result_temp;
     }
 function setThinningScenario(data) {
@@ -48,8 +47,6 @@ function setThinningScenario(data) {
     }
     manager.thinningScenario = result_temp;
 }
-
-
 function setForManPlan(data) {
     var result_temp = new Array();
     for (var i=0; i<data.length; i++)
@@ -98,7 +95,6 @@ function setGrowth() {
     }
     manager.spcGrowth = result_temp;
 }
-
 
 // Keep it global
 var chart = null;
