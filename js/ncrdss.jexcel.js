@@ -13,12 +13,12 @@ function checkNumeric(instance, x, y, value) {
     *  바꾼 뒤에, False 를 출력한다. 숫자 입력일 경우 true */
 
     // 숫자가 아니거나, 음수이거나, 공백이거나 (지워져서)
-    if (Number.isNaN(Number(value)) | Number(value) <= 0 && value!='') {
+    if (Number.isNaN(Number(value)) | Number(value) < 0 && value!='') {
         // 그런데 만약, 입력된게 간벌시나리오이면서 %가 붙은 경우 (2자리부터 %가 붙어서 문자열로 출력됨 e.g., % 20)
         if (instance.id == 'table_thinning' & String(value).includes('%')) {
             value = Number(value.replace('% ', ''));
             // 숫자로 바꿔주고 100보다 큰지 체크
-            if (value >= 100 | value < 0) {
+            if (value > 100 | value < 0) {
                 id_table[instance.id].setValueFromCoords(x, y, '');
                 return false
             } else {
@@ -31,28 +31,33 @@ function checkNumeric(instance, x, y, value) {
     } else
         return true
 }
+function onChangeAddress() {
+    table_SpcClasses.deleteColumn(1);
+    // table_SpcClasses.insertColumn(1, 1, false, [{title:'수종명', type:'dropdown', source: manager.availableSpc, width:CELL_WIDTH}]);
+    table_SpcClasses.insertColumn(1, 1, false, [{title:'수종명', type:'dropdown', source: manager.totalSpc, width:CELL_WIDTH}]); // 17개 수종 추가한 것
+} // 주소 입력시 spcClasses 업데이트
 var onChange_Base = function(instance, cell, x, y, value) {
-    /* 임분 기본 정보 입력 테이블 #table_base
+    /* 임분 기본 정보 입력 테이블 #table_Base
     *  구역 수, 수종 수, 계획 기간, 시작 연도
     *  값이 변경되었을 때 호출되는 함수 */
     if (!checkNumeric(instance, x, y, value))
         return
 
-    setBase(table_base.getData()); // manager 값 업데이트
+    manager.setBase(table_Base.getData()); // manager 값 업데이트
     var cellName = jexcel.getColumnNameFromId([x,y]);
     if (cellName == 'A1')
         updateCurrentSpcTable(manager.spcLists, 'sections');
     if (cellName == 'B1') {
-        updateNumSpc(value); // currentSpc 테이블의 수종 수 업데이트 (열 추가)
-        setSpcClasses(table_SpcClasses.getData());
+        updateSpcClasses(value); // currentSpc 테이블의 수종 수 업데이트 (열 추가)
+        manager.setSpcClasses(table_SpcClasses.getData());
     }
     if (cellName == 'C1')
         ""; //TODO : 계획분기 수 설정시 간벌 시나리오 테이블 재설정하는 함수
-    if (!table_base.getData().flat().includes("")) { // 전부 채워진 경우
+    if (!table_Base.getData().flat().includes("")) { // 전부 채워진 경우
 
-        setBgColor(table_base, style_bg_orig)
+        setBgColor(table_Base, style_bg_orig)
         setBgColor(table_SpcClasses, style_bg_red);
-        //setCellBorderColor(table_base, style_orig); // BaseTable 레이아웃 업데이트
+        //setCellBorderColor(table_Base, style_orig); // BaseTable 레이아웃 업데이트
         //setCellBorderColor(table_SpcClasses, style_red);
     }
 };
@@ -60,17 +65,28 @@ var onChange_SpcClasses = function(instance, cell, x, y, value) {
     /* 수종 관련 기본 정보 입력 테이블 #table_SpcClasses
     *  수종 구분명, 수종 종류
     *  값이 변경되었을 때 호출되는 함수 */
-    setSpcClasses(table_SpcClasses.getData());
+
+    manager.setSpcClasses(table_SpcClasses.getData());
     var cellName = jexcel.getColumnNameFromId([x,y]);
     if (cellName.includes('B')) { // 수종이 추가되면 차트 그리기
-        setGrowth(); // Growth 예측하고
-        chart.addSeries({
-            id: value,
-            name:value,
-            //data: final_volumn[target_address + ' ' + value]
-            //data: manager.spcGrowth[value].growthCombined
-            data: manager.spcGrowth[value].predictions
-        }, false);
+        if (!manager.spcLists.includes(value))
+            return
+        else
+            manager.setGrowth(); // manager 의 Growth 설정 (예측)
+        for (const spc of chart.series.map(a => a.name)) {
+             chart.get(spc).remove();
+        }
+        for (const spc of manager.spcLists) {
+            if (spc == "")
+                continue;
+            chart.addSeries({
+                id: spc,
+                name:spc,
+                //data: final_volume[target_address + ' ' + value]
+                //data: manager.spcGrowth[value].growthCombined
+                data: manager.spcGrowth[spc].predictions
+            }, false);
+        }
         chart.redraw();
     }
     if (!table_SpcClasses.getData().flat().includes("")) { // 전부 채워진 경우
@@ -90,10 +106,9 @@ var onChange_currentSpc = function(instance, cell, x, y, value) {
     /* 현재 임분 수종 관련 정보 입력 테이블 #table_currentSpc
     *  영급, 면적, 재적
     *  값이 변경되었을 때 호출되는 함수 */
-    setCurrentSpc(table_currentSpc.getData());
+    manager.setCurrentSpc(table_currentSpc.getData());
     var cellName = jexcel.getColumnNameFromId([x,y]);
     if (!cellName.includes('A') & !cellName.includes('B')) { // C D E 열의 경우
-        console.log(cellName);
         if (!checkNumeric(instance, x, y, value))
             return false
     }
@@ -112,7 +127,8 @@ var onChange_Thinning = function(instance, cell, x, y, value) {
     *  값이 변경되었을 때 호출되는 함수 */
     if (!checkNumeric(instance, x, y, value))
         return
-    setThinningScenario(table_thinning.getData());
+    manager.setThinningScenario(table_thinning.getData());
+    manager.setForManPlan(table_ForManPlan.getData()); // 시업 정보를 입력하고, 시나리오를 입력하는 경우?
 };
 var onChangeForManPlan = function(instance, cell, x, y, value) {
     /* 산림시업정보 입력 테이블 #table_ForManPlan
@@ -123,8 +139,8 @@ var onChangeForManPlan = function(instance, cell, x, y, value) {
         if (!checkNumeric(instance, x, y, value))
             return false
     }
-    setForManPlan(table_ForManPlan.getData());
     if (!table_ForManPlan.getData().flat().includes("")) { // 전부 채워진 경우
+        manager.setForManPlan(table_ForManPlan.getData());
         setBgColor(table_thinning, style_bg_orig);
         setBgColor(table_ForManPlan, style_bg_orig);
         // setCellBorderColor(table_ForManPlan, style_orig);
@@ -150,12 +166,12 @@ function addCurrentSpcRow() {
     setBgColor(table_currentSpc, style_bg_red);
     // setCellBorderColor(table_currentSpc, style_red);
 }
-function delecteCurrentSpcRow() {
+function deleteCurrentSpcRow() {
     table_currentSpc.deleteRow(currentSpeciesSelected.y1, currentSpeciesSelected.y2 - currentSpeciesSelected.y1 + 1);
     setBgColor(table_currentSpc, style_bg_red);
     // setCellBorderColor(table_currentSpc, style_red);
 }
-function updateNumSpc(num) {
+function updateSpcClasses(num) {
     index_SpcClasses.deleteRow(1,index_SpcClasses.rows.length);
     table_SpcClasses.deleteRow(1,table_SpcClasses.rows.length);
     for (var i=1;i<num;i++) {
@@ -166,7 +182,7 @@ function updateNumSpc(num) {
 function updateCurrentSpcTable(species, flag) {
     if (flag == 'sections') {
         var sectionArray = new Array();
-        for (var i=0; i<manager.numSection; i++)
+        for (var i=0; i<manager.numSections; i++)
             sectionArray.push(String(i+1));
         table_currentSpc.deleteColumn(0);
         table_currentSpc.insertColumn(1, 0, true, [{title:'구역 번호', type:'dropdown', source: sectionArray, width:CELL_WIDTH}]);
@@ -177,9 +193,9 @@ function updateCurrentSpcTable(species, flag) {
     }
 }
 function updateForManTable(species) {
-    if (table_base.getCell('A1').innerText != "" & table_base.getCell('B1').innerText != "") {
-        var numSec = Number(table_base.getCell('A1').innerText);
-        var numSpc = Number(table_base.getCell('B1').innerText);
+    if (table_Base.getCell('A1').innerText != "" & table_Base.getCell('B1').innerText != "") {
+        var numSec = Number(table_Base.getCell('A1').innerText);
+        var numSpc = Number(table_Base.getCell('B1').innerText);
 
         index_ForManPlan.deleteRow(1,index_ForManPlan.rows.length)
         table_ForManPlan.deleteRow(1,table_ForManPlan.rows.length);
@@ -221,7 +237,7 @@ var dataframe_ForManPlan = [
 ];
 var dataframe_carbonCoeffs = [[]];
 
-var table_base = jexcel(document.getElementById('table_base'), {
+var table_Base = jexcel(document.getElementById('table_Base'), {
     data:dataframe_base,
     colHeaders: ['구역 수', '고려할 수종 수', '계획 분기수', '시작 연도'],
     colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
@@ -235,7 +251,7 @@ var table_base = jexcel(document.getElementById('table_base'), {
     allowManualInsertRow:false,
     allowManualInsertColumn: false,
 });
-table_base.hideIndex();
+table_Base.hideIndex();
 
 var index_SpcClasses = jexcel(document.getElementById('index_SpcClasses'), {
     data:[['수종 1']],
@@ -330,7 +346,7 @@ var table_ForManPlan = jexcel(document.getElementById('table_ForManPlan'), {
         },
         { type: 'numeric' },
         { type: 'dropdown',
-            source:['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I',]
+            source:['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'X']
         },
     ],
     onchange:onChangeForManPlan,
@@ -358,8 +374,9 @@ for (const year of ['20년','30년','40년','50년','60년','70년','80년','90�
 index_thinning.hideIndex();
 var table_thinning = jexcel(document.getElementById('table_thinning'), {
     data:[[]],
-    colHeaders: [],
+    colHeaders: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'X'],
     columns: [
+        { type: 'numeric', mask: '% #'},
         { type: 'numeric', mask: '% #'},
         { type: 'numeric', mask: '% #'},
         { type: 'numeric', mask: '% #'},
@@ -411,7 +428,7 @@ var table_carbonCoeffs = jexcel(document.getElementById('table_carbonCoeffs'), {
 table_carbonCoeffs.hideIndex();
 
 var id_table = {
-    'table_base':table_base,
+    'table_base':table_Base,
     'table_SpcClasses':table_SpcClasses,
     'table_currentSpc':table_currentSpc,
     'table_thinning':table_thinning,

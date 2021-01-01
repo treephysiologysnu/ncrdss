@@ -272,23 +272,23 @@ jSuites.chat = (function(el, options) {
     }
 
     // Init
-    /*obj.init = function() {
+    /*addressSpecies.init = function() {
         // Load data
-        if (obj.options.url) {
-            var data = obj.cache();
+        if (addressSpecies.options.url) {
+            var data = addressSpecies.cache();
             if (data) {
-                obj.options.data = data;
-                obj.render();
+                addressSpecies.options.data = data;
+                addressSpecies.render();
             }
             // Most recent date
-            obj.loadData(true, function() {
-                obj.scrollToBottom(1);
+            addressSpecies.loadData(true, function() {
+                addressSpecies.scrollToBottom(1);
             });
         } else {
-            if (! obj.options.data) {
+            if (! addressSpecies.options.data) {
                 console.error('No data defined'); 
             } else {
-                obj.render();
+                addressSpecies.render();
             }
         }
     }*/
@@ -334,7 +334,7 @@ jSuites.chat = (function(el, options) {
             multiple: true,
             onclose: function() {
                 // Create room
-                /*obj.createRoom(listUsers.getValue());
+                /*addressSpecies.createRoom(listUsers.getValue());
 
                 // Close users
                 listUsers.reset();
@@ -466,16 +466,16 @@ jSuites.chat = (function(el, options) {
     var history = null;
     var listUsers = null;
 
-    var obj = function(el, options) {
+    var addressSpecies = function(el, options) {
         if (el) {
             if (el.innerHTML) {
-                return obj;
+                return addressSpecies;
             } else {
                 el.innerHTML = '';
 
                 // Options
                 if (options) {
-                    obj.options = options;
+                    addressSpecies.options = options;
                 }
 
                 // Container
@@ -484,8 +484,8 @@ jSuites.chat = (function(el, options) {
                 el.appendChild(chatContainer);
 
                 history = jSuites.template(chatContainer, {
-                    url: obj.options.url,
-                    template: obj.options.template,
+                    url: addressSpecies.options.url,
+                    template: addressSpecies.options.template,
                     noRecordsFound: 'No messages at this moment',
                     onload: function() {
                         // Date format
@@ -494,13 +494,13 @@ jSuites.chat = (function(el, options) {
                 });
 
                 listUsers = jSuites.dropdown(chatUsers, {
-                    url: obj.options.users,
+                    url: addressSpecies.options.users,
                     type: 'searchbar',
                     autocomplete: true,
                     multiple: true,
                     onclose: function() {
                         // Create room
-                        obj.createRoom(listUsers.getValue());
+                        addressSpecies.createRoom(listUsers.getValue());
 
                         // Close users
                         listUsers.reset();
@@ -511,36 +511,36 @@ jSuites.chat = (function(el, options) {
         }
     }
 
-    obj.refresh = function() {
+    addressSpecies.refresh = function() {
         history.reload();
     }
 
-    obj.create = function() {
+    addressSpecies.create = function() {
         chatUsers.style.display = '';
         listUsers.open();
     }
 
-    obj.createRoom = function(users) {
+    addressSpecies.createRoom = function(users) {
         if (users) {
             // Show loading
             jSuites.loading.show();
 
             // Create room in the remote server
             jSuites.ajax({
-                url: obj.options.url,
+                url: addressSpecies.options.url,
                 method: 'POST',
                 data: { users:users },
                 dataType: 'json',
                 success: function(data) {
                     // Refresh
-                    obj.refresh();
+                    addressSpecies.refresh();
 
                     // Hide loading
                     jSuites.loading.hide();
 
                     if (data.success == 1) {
                         // Open room
-                        obj.openRoom(data.id);
+                        addressSpecies.openRoom(data.id);
                     } else {
                         jSuites.alert(data.message);
                     }
@@ -549,15 +549,15 @@ jSuites.chat = (function(el, options) {
         }
     }
 
-    obj.openRoom = function(id, o) {
+    addressSpecies.openRoom = function(id, o) {
         // Open room
-        jSuites.pages(obj.options.url + '/room#' + id, {
+        jSuites.pages(addressSpecies.options.url + '/room#' + id, {
             onload: function(p) {
                 // Create chat component
                 if (! p.children[1].classList.contains('jchat')) {
                     jSuites.chat(p.children[1], {
                         id: id,
-                        url: obj.options.url + '/room/' + id,
+                        url: addressSpecies.options.url + '/room/' + id,
                         cache: true,
                     });
                 }
@@ -582,7 +582,7 @@ jSuites.chat = (function(el, options) {
         });
     }
 
-    return obj;
+    return addressSpecies;
 })();*/
 
 jSuites.login = (function(el, options) {

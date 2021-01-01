@@ -258,7 +258,7 @@
             <hr>
             <div class="table-wrapper">
                 <h4 class="table-header">임분의 기본 정보를 입력해주세요.</h4>
-                <div id="table_base"></div>
+                <div id="table_Base"></div>
             </div>
             <div class="table-wrapper">
                 <h4 class="table-header">계획 단계에서 고려할 수종의 종류를 정의합니다.</h4>
@@ -269,7 +269,7 @@
                 <h4 class="table-header">현재 임분 정보를 입력해주세요.</h4>
                 <div id="table_currentSpc"></div>
                 <button class="table-button add" onclick="addCurrentSpcRow()">+</button>
-                <button class="table-button minus" onclick="delecteCurrentSpcRow()">—</button>
+                <button class="table-button minus" onclick="deleteCurrentSpcRow()">—</button>
             </div>
         </article>
         <article class="article-2 article-full">
@@ -320,14 +320,23 @@
         </article>
         <article class="article-2 article-full">
             <div class="title-wrapper">
-                <h3 >일자리 창출량</h3>
+                <h3 >산림시업 관련 설정</h3>
             </div>
             <hr>
             <div class="table-wrapper">
 
             </div>
         </article>
-        <article class="article-3 article-full">
+        <article class="article-2 article-full">
+            <div class="title-wrapper">
+                <h3 >목재가격 설정</h3>
+            </div>
+            <hr>
+            <div class="table-wrapper">
+
+            </div>
+        </article>
+        <article class="article-4 article-full">
             <div class="title-wrapper">
                 <h3 >기타 제약조건 설정</h3>
             </div>
@@ -350,12 +359,13 @@
 <script src="https://code.highcharts.com/highcharts.src.js"></script>
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9f7e3d2efc3436a54d33c3ce2edf211a&libraries=services"></script>
-<script src="js/final_results.js"></script>
+<script src="js/ncrdss.data.growth.js"></script>
 <script src="js/ncrdss.address.js"></script>
 <script src="js/ncrdss.data.addressSpecies.js"></script>
 <script src="js/ncrdss.js"></script>
 <script src="js/ncrdss.jexcel.js"></script>
 <script src="js/ncrdss.layout.js"></script>
+<script src="js/ncrdss.linearprogramming.js"></script>
 <script src="js/ncrdss.tabs.js"></script>
 <script src="js/regression.min.js"></script>
 </html>

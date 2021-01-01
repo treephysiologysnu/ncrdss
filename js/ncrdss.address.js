@@ -1,36 +1,32 @@
-var preset_coordinates = (33.45066339978431, 126.56769289645109);
+var presetCoordinates = [36.36086, 127.38442];
 
 var mapContainer = document.getElementById('map'), // 지도를 표시할 div
     mapOption = {
-        center: new daum.maps.LatLng(36.36086, 127.38442), // 지도의 중심좌표
+        center: new daum.maps.LatLng(presetCoordinates[0], presetCoordinates[1]), // 지도의 중심좌표
         level: 3 // 지도의 확대 레벨
     };
 
 var target_address = new String();
 
-//지도를 미리 생성
 var map = new daum.maps.Map(mapContainer, mapOption);
-//주소-좌표 변환 객체를 생성
-var geocoder = new daum.maps.services.Geocoder();
+var geocoder = new daum.maps.services.Geocoder(); //주소-좌표 변환 객체
 //마커를 미리 생성
 var marker = new daum.maps.Marker({
     position: new daum.maps.LatLng(0, 0),
     map: map
 });
 var coords = {'lat':0, 'lng':0};
-// 지도가 이동, 확대, 축소로 인해 중심좌표가 변경되면 마지막 파라미터로 넘어온 함수를 호출하도록 이벤트를 등록합니다
+
 kakao.maps.event.addListener(map, 'center_changed', function() {
 
     // 지도의 중심좌표를 얻어옵니다
     var latlng = map.getCenter();
     coords = latlng;
     update_marker(latlng);
-});
-
+}); // 지도가 이동, 확대, 축소로 인해 중심좌표가 변경되면 마지막 파라미터로 넘어온 함수를 호출하도록 이벤트를 등록합니다
 function update_marker(x, y) {
     marker.setPosition(x, y);
 };
-
 function parse_jibunAddress(jibunAddress) {
     result = new String();
     for (const item of jibunAddress.split(' ')) {
@@ -44,7 +40,7 @@ function parse_jibunAddress(jibunAddress) {
         return result.slice(1, result.length - 2);
     else
         return result.slice(1, result.length);
-}
+};
 
 function addressSearch() {
     var userAddress = document.getElementById('address-input').value;
@@ -52,9 +48,11 @@ function addressSearch() {
         oncomplete: function(data) {
             var addr = data.address; // 최종 주소 변수
             target_address = parse_jibunAddress(data.jibunAddress);
-            if (obj[target_address] != undefined) {
-                update_option(obj[target_address]);
-                setAddress(target_address); // save to manager
+            if (addressSpecies[target_address] != undefined) {
+                manager.setAvailableSpc(addressSpecies[target_address]);
+                manager.setAddress(target_address); // save to manager
+                manager.setAdditionalSpc();
+                onChangeAddress();
             }
             else
                 alert('자료가 부족하여 아직 해당 지역에는 적용이 불가합니다.');
