@@ -41,33 +41,31 @@ function Manager() {
         const essentialSpc = ['소나무', '신갈나무', '굴참나무', '리기다소나무', '졸참나무', '곰솔', '상수리나무', '일본잎갈나무', '밤나무', '잣나무', '아까시나무', '갈참나무', '산벚나무', '물푸레나무', '때죽나무', '굴피나무', '떡갈나무'];
         var additionalSpcList = [];
         for (const spc of essentialSpc) {
-            if (this.availableSpc.includes(spc))
-                continue;
-            else
+            if (!this.availableSpc.includes(spc))
                 additionalSpcList.push(spc);
         }
         this.additionalSpc = additionalSpcList;
         this.totalSpc = arrayUnique(this.availableSpc.concat(additionalSpcList));
-    }
+    };
     this.setBase = function (data) {
         this.numSections = Number(data[0][0]);
         this.numSpecies = Number(data[0][1]);
         this.planningPeriod = Number(data[0][2]);
         this.startYear = Number(data[0][3]);
-    }
+    };
     this.setSpcClasses = function (data) {
         var result_temp = new Array();
         for (var i=0; i<data.length; i++)
             result_temp.push({class: i+1, speciesID: data[i][0], species:data[i][1]});
         this.spcClasses = result_temp;
         this.spcLists = result_temp.map(a => a.species);
-    }
+    };
     this.setCurrentSpc = function (data) {
         var result_temp = new Array();
         for (var i=0; i<data.length; i++)
             result_temp.push({section: Number(data[i][0]), species: data[i][1], age: Number(data[i][2]), area: Number(data[i][3]), volume: Number(data[i][4])});
         this.currentSpc = result_temp;
-    }
+    };
     this.setThinningScenario = function (data) {
         var result_temp = new Array();
         const index = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
@@ -82,7 +80,7 @@ function Manager() {
             }
         }
         this.thinningScenario = result_temp;
-    }
+    };
     this.setForManPlan = function (data) {
         var result_temp = [];
         for (var i=0; i<data.length; i++) {
@@ -91,7 +89,7 @@ function Manager() {
             result_temp.push({section: Number(data[i][0].replace("구역 ", "")), species: data[i][1], clearCutYear: Number(data[i][2]), thinningScenario: this.thinningScenario[data[i][3]]});
         }
         this.forManPlan = result_temp;
-    }
+    };
     this.setGrowth = function () {
         const speciesArray = this.spcClasses;
         var address = this.address;
@@ -133,74 +131,10 @@ function Manager() {
             result_temp[speciesArray[i].species] = logRegression;
         }
         this.spcGrowth = result_temp;
-    }
+    };
 
 }
 var manager = new Manager();
-
-function testDefine() {
-    address = "전남 진도군 임회면"
-    base = [["2", "3", "4", "5"]];
-    spcClasses = [
-        [
-            "A",
-            "육박나무"
-        ],
-        [
-            "B",
-            "비목나무"
-        ],
-        [
-            "C",
-            "상수리나무"
-        ]
-    ];
-    currentSpc= [
-        [
-            "1",
-            "육박나무",
-            "5",
-            "20",
-            "140"
-        ],
-        [
-            "1",
-            "비목나무",
-            "4",
-            "40",
-            "130"
-        ],
-        [
-            "1",
-            "비목나무",
-            "3",
-            "40",
-            "150"
-        ],
-        [
-            "2",
-            "상수리나무",
-            "3",
-            "10",
-            "160"
-        ],
-        [
-            "2",
-            "육박나무",
-            "7",
-            "30",
-            "180"
-        ]
-    ];
-
-    manager.setAvailableSpc(addressSpecies[address]);
-    manager.setAddress(address); // save to manager
-    onChangeAddress();
-    table_Base.setData(base);
-    table_SpcClasses.setData(spcClasses);
-    //table_currentSpc.setData(currentSpc);
-}
-
 
 // Keep it global
 var chart = null;

@@ -91,9 +91,9 @@ function updateAddressInput() {
 
 function updateBaseInput(completed) {
     if (completed)
-        setBgColor(table_base, style_bg_orig);
-        // setCellBorderColor(table_base, style_orig)
+        setBgColor(table_Base, style_bg_orig);
+        // setCellBorderColor(table_Base, style_orig)
     else
-        setBgColor(table_base, style_bg_red);
-        // setCellBorderColor(table_base, style_red)
+        setBgColor(table_Base, style_bg_red);
+        // setCellBorderColor(table_Base, style_red)
 }

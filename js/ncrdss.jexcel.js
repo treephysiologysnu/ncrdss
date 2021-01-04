@@ -13,12 +13,37 @@ function checkNumeric(instance, x, y, value) {
     *  바꾼 뒤에, False 를 출력한다. 숫자 입력일 경우 true */
 
     // 숫자가 아니거나, 음수이거나, 공백이거나 (지워져서)
-    if (Number.isNaN(Number(value)) | Number(value) < 0 && value!='') {
+    if (Number.isNaN(Number(value)) | Number(value) < 0 && value !== "") {
         // 그런데 만약, 입력된게 간벌시나리오이면서 %가 붙은 경우 (2자리부터 %가 붙어서 문자열로 출력됨 e.g., % 20)
-        if (instance.id == 'table_thinning' & String(value).includes('%')) {
+        if (instance.id === 'table_thinning' && String(value).includes('%')) {
             value = Number(value.replace('% ', ''));
             // 숫자로 바꿔주고 100보다 큰지 체크
-            if (value > 100 | value < 0) {
+            if (value > 100 || value < 0) {
+                id_table[instance.id].setValueFromCoords(x, y, '');
+                return false
+            } else {
+                return true
+            }
+        } else {
+            id_table[instance.id].setValueFromCoords(x, y, '');
+            return false
+        }
+    } else
+        return true
+}
+function checkNumericNotZero(instance, x, y, value) {
+    /* 숫자 입력 여부 확인하는 함수.
+    *  문자 입력, 혹은 delete 에 의해 공백이 입력되면
+    *  해당 table 의 (id_table dictionary 로 참조) cell 을 공백으로
+    *  바꾼 뒤에, False 를 출력한다. 숫자 입력일 경우 true */
+
+    // 숫자가 아니거나, 0이하이거나, 공백이거나 (지워져서)
+    if (Number.isNaN(Number(value)) | Number(value) <= 0 && value !== "") {
+        // 그런데 만약, 입력된게 간벌시나리오이면서 %가 붙은 경우 (2자리부터 %가 붙어서 문자열로 출력됨 e.g., % 20)
+        if (instance.id === 'table_thinning' && String(value).includes('%')) {
+            value = Number(value.replace('% ', ''));
+            // 숫자로 바꿔주고 100보다 큰지 체크
+            if (value > 100 || value < 0) {
                 id_table[instance.id].setValueFromCoords(x, y, '');
                 return false
             } else {
@@ -108,8 +133,8 @@ var onChange_currentSpc = function(instance, cell, x, y, value) {
     *  값이 변경되었을 때 호출되는 함수 */
     manager.setCurrentSpc(table_currentSpc.getData());
     var cellName = jexcel.getColumnNameFromId([x,y]);
-    if (!cellName.includes('A') & !cellName.includes('B')) { // C D E 열의 경우
-        if (!checkNumeric(instance, x, y, value))
+    if (!cellName.includes('A') && !cellName.includes('B')) { // C D E 열의 경우
+        if (!checkNumericNotZero(instance, x, y, value))
             return false
     }
     if (!table_currentSpc.getData().flat().includes("")) { // 전부 채워진 경우
@@ -126,7 +151,7 @@ var onChange_Thinning = function(instance, cell, x, y, value) {
     *  
     *  값이 변경되었을 때 호출되는 함수 */
     if (!checkNumeric(instance, x, y, value))
-        return
+        return;
     manager.setThinningScenario(table_thinning.getData());
     manager.setForManPlan(table_ForManPlan.getData()); // 시업 정보를 입력하고, 시나리오를 입력하는 경우?
 };
@@ -282,21 +307,6 @@ var table_SpcClasses = jexcel(document.getElementById('table_SpcClasses'), {
 });
 table_SpcClasses.hideIndex();
 
-/*
-var index_currentSpc = jexcel(document.getElementById('index_currentSpc'), {
-    data:[['구역 1']],
-    colHeaders:['현재임분정보'],
-    colWidths: [ CELL_WIDTH ],
-    columns: [
-        {
-            type: 'text',
-            readOnly:true,
-        },
-    ],
-    allowManualInsertRow:false,
-    allowManualInsertColumn: false,
-});
-index_currentSpc.hideIndex();*/
 var table_currentSpc = jexcel(document.getElementById('table_currentSpc'), {
     data:dataframe_currentSpc,
     colHeaders: ['구역번호', '수종명', '영급', '면적 (ha)', '재적 (m³/ha)'],
@@ -315,7 +325,6 @@ var table_currentSpc = jexcel(document.getElementById('table_currentSpc'), {
     allowManualInsertColumn: false,
 });
 table_currentSpc.hideIndex();
-
 
 var index_ForManPlan = jexcel(document.getElementById('index_ForManPlan'), {
     data:[[]],
@@ -396,8 +405,6 @@ var table_thinning = jexcel(document.getElementById('table_thinning'), {
 table_thinning.hideIndex();
 for (i=0;i<14;i++)
     table_thinning.insertRow();
-
-
 
 var index_carbonCoeffs = jexcel(document.getElementById('index_carbonCoeffs'), {
     data:[[]],
