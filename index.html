@@ -167,7 +167,7 @@
                 <h3>모델 구동 결과</h3>
             </li>
             <li>
-                <a href="#0">
+                <a data-id="tab6" class="tab-a">
                     <svg>
                         <use xlink:href="#charts"></use>
                     </svg>
@@ -218,7 +218,6 @@
         </article>
     </section>
 </section>
-
 <!-------------  임분 주소 설정  ------------->
 <section id="tab2" class="page-content hidden">
     <section class="grid">
@@ -247,7 +246,6 @@
         </article>
     </section>
 </section>
-
 <!-------------  임분 정보 입력  ------------->
 <section id="tab3" class="page-content hidden">
     <section class="grid">
@@ -280,7 +278,7 @@
         </article>
     </section>
 </section>
-
+<!-------------  산림시업정보 입력  ------------->
 <section id="tab4" class="page-content hidden">
     <section class="grid">
         <article class="article-1 article-full">
@@ -305,7 +303,7 @@
         </article>
     </section>
 </section>
-
+<!-------------  기타 환경설정  ------------->
 <section id="tab5" class="page-content hidden">
     <section class="grid">
         <article class="article-1 article-full">
@@ -347,25 +345,41 @@
         </article>
     </section>
 </section>
+<!-------------  모델 예측 결과  ------------->
+<section id="tab6" class="page-content hidden">
+    <section class="grid">
+        <article class="article-1 article-full">
+            <div class="title-wrapper">
+                <h3>분기별 환산 가치</h3>
+            </div>
+            <hr>
+            <div class="table-wrapper">
+                <canvas id="ObjectiveBarChart"></canvas>
+            </div>
+        </article>
+    </section>
+</section>
 
     <footer class="page-footer">
         <small>Made with <span>❤</span> by <a href="https://github.com/treephysiologysnu">Tae Kyung Kim</a>
         </small>
     </footer>
 </body>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="js/jexcel.js"></script>
 <script src="js/jsuites.js"></script>
 <script src="js/math.js"></script>
 <script src="https://code.highcharts.com/highcharts.src.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9f7e3d2efc3436a54d33c3ce2edf211a&libraries=services"></script>
-<script src="js/ncrdss.data.growth.js"></script>
 <script src="js/ncrdss.address.js"></script>
 <script src="js/ncrdss.data.addressSpecies.js"></script>
+<script src="js/ncrdss.data.coeff.js"></script>
+<script src="js/ncrdss.data.growth.js"></script>
 <script src="js/ncrdss.js"></script>
 <script src="js/ncrdss.jexcel.js"></script>
 <script src="js/ncrdss.layout.js"></script>
-<script src="js/ncrdss.linearprogramming.js"></script>
 <script src="js/ncrdss.tabs.js"></script>
 <script src="js/regression.min.js"></script>
 </html>

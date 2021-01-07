@@ -10,7 +10,6 @@ const tabClick = ({ target }) => {
         map.setCenter(new daum.maps.LatLng(36.36086, 127.38442));
     }
 };
-
 const bindClickListener = () => {
     document.querySelectorAll('.tab-a').forEach(tab => {
         tab.addEventListener('click', tabClick);

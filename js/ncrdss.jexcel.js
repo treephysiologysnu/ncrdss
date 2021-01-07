@@ -166,6 +166,7 @@ var onChangeForManPlan = function(instance, cell, x, y, value) {
     }
     if (!table_ForManPlan.getData().flat().includes("")) { // 전부 채워진 경우
         manager.setForManPlan(table_ForManPlan.getData());
+        manager.setCoeffs();
         setBgColor(table_thinning, style_bg_orig);
         setBgColor(table_ForManPlan, style_bg_orig);
         // setCellBorderColor(table_ForManPlan, style_orig);
