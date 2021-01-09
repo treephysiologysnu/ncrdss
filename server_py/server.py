@@ -19,8 +19,10 @@ def run():
     json_data = request.json
     data = create_matrix(json_data)
     results = solve(data, solver='highs-ds')
+    results.to_csv('temp.csv')
     print(results)
     results_dict = results.to_dict()
+
     results_dict['meta'] = generate_meta(json_data)
     return jsonify(simplejson.dumps(results_dict, ignore_nan=True, ensure_ascii=False))
 

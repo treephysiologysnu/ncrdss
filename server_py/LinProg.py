@@ -35,11 +35,17 @@ ID2AccVarNameRules = {
 def create_matrix(data):
     manager = data
 
+    #TODO : currentVolumeTable & futureVolumeTable 밀도 파트 추가하기.
+
     w1 = manager['coeffs']['w1']
     w2 = manager['coeffs']['w2']
     w3 = manager['coeffs']['w3']
 
     DENSITY = manager['coeffs']['initialDensity']
+
+    ########################################################################
+    #              Define Initial Conditions From Manager                  #
+    ########################################################################
     spc2ID = {obj['species']: obj['speciesID'] for obj in manager['spcClasses']}
     ID2spc = {obj['speciesID']: obj['species'] for obj in manager['spcClasses']}
     spcIDList = list(spc2ID.values())
@@ -47,7 +53,7 @@ def create_matrix(data):
     initialConditions = list()
     for currentSpc in manager['currentSpc']:
         temp_dict = currentSpc.copy()
-        temp_dict['spcID'] = spc2ID[temp_dict['species']];
+        temp_dict['spcID'] = spc2ID[temp_dict['species']]
         temp_dict['periodBorn'] = 1 - temp_dict['age']
 
         forManPlan = next(item for item in manager['forManPlan']
@@ -77,10 +83,10 @@ def create_matrix(data):
         currentVolumeTable['spcID'] = initialCondition['spcID']
         currentVolumeTable['currentAge'] = initialCondition['age']
         currentVolumeTable['clearCutYear'] = initialCondition['clearCutYear']
-        growthData = initialCondition['spcGrowth']['predictions'].copy()
+        tree_volume_growth = initialCondition['spcGrowth']['predictions'].copy()
 
-        ratio = initialCondition['volume'] / growthData[10 * initialCondition['age'] - 1]
-        growthData = [x * ratio for x in growthData]
+        ratio = initialCondition['volume'] / tree_volume_growth[10 * initialCondition['age'] - 1]
+        tree_volume_growth = [x * ratio for x in tree_volume_growth]
 
         temp_current_volume_data = dict()
         age = 1
@@ -88,13 +94,13 @@ def create_matrix(data):
             per = 1
             while age < initialCondition['clearCutYear']:
                 age = currentVolumeTable['currentAge'] + per - 1
-                prod = growthData[10 * age - 1] * initialCondition['thinningScenario'][age - 1]
+                prod = tree_volume_growth[10 * age - 1] * initialCondition['thinningScenario'][age - 1]
 
                 if age == initialCondition['clearCutYear']:
-                    prod = growthData[10 * age - 1]
+                    prod = tree_volume_growth[10 * age - 1]
 
-                growthData = [x - prod for x in growthData]  # Subtract the amount of thinning from the growth data
-                vol = growthData[10 * age - 1]  # Volume after subtracting
+                tree_volume_growth = [x - prod for x in tree_volume_growth]  # Subtract the amount of thinning from the growth data
+                vol = tree_volume_growth[10 * age - 1]  # Volume after subtracting
 
                 temp_current_volume_data[per] = {
                     'period': per,
@@ -107,7 +113,7 @@ def create_matrix(data):
             per = 1
             age = currentVolumeTable['currentAge'] + per - 1
             vol = 0
-            prod = growthData[10 * age - 1]
+            prod = tree_volume_growth[10 * age - 1]
             temp_current_volume_data[per] = {
                 'period': per,
                 'age': age,
@@ -121,8 +127,11 @@ def create_matrix(data):
     for sec in range(manager['numSections']):
         sec += 1
         for spcID in spcIDList:
-            growthData = manager['spcGrowth'][ID2spc[spcID]]['predictions'].copy()
-            growthData = [x * DENSITY for x in growthData]
+            tree_volume_growth = manager['spcGrowth'][ID2spc[spcID]]['predictions'].copy()
+
+            # DensityData = manager['density'][ID2spc[spcID]]
+            # tree_volume_growth = [x * get_mortality_rate(i) for i,x in enumerate(tree_volume_growth)]
+            tree_volume_growth = [x * DENSITY for x in tree_volume_growth] #TODO : DENSITY 를 동적으로 얻어오도록 수정하기
 
             futureVolumeTable = dict()
             futureVolumeTable['section'] = sec
@@ -141,12 +150,12 @@ def create_matrix(data):
 
             for per in range(clearCutYear):
                 per += 1  # To start from 1. per => 1, 2, 3 .. 7 (clearCutYear = 7)
-                prod = growthData[10 * per - 1] * thinningScenario[per - 1]
+                prod = tree_volume_growth[10 * per - 1] * thinningScenario[per - 1]
                 if per == clearCutYear:
-                    prod = growthData[10 * per - 1]
+                    prod = tree_volume_growth[10 * per - 1]
 
-                growthData = [x - prod for x in growthData]
-                vol = growthData[10 * per - 1]
+                tree_volume_growth = [x - prod for x in tree_volume_growth]
+                vol = tree_volume_growth[10 * per - 1]
                 temp_future_volume_data[per] = {
                     'period': per,
                     'age': per,
@@ -442,10 +451,10 @@ def create_matrix(data):
                                    (item['currentAge'] == 1 - V['periodBorn']))['data'][EqName['period']]['volume']
                         line.append(vol)
                     else:  # 식재된 나무일 때 면적이 변화) -> futureVolumeTables 에서 참고
+                        age_temp = EqName['period'] - V['periodBorn']
                         vol = next(item for item in futureVolumeTables
                                    if (item['section'] == V['section']) &
-                                   (item['spcID'] == V['spcID']))['data'][EqName['period'] - V['periodBorn']][
-                            'produced']
+                                   (item['spcID'] == V['spcID']))['data'][age_temp]['volume']
                         line.append(vol)
                 else:
                     line.append(0)
@@ -531,17 +540,17 @@ def create_matrix(data):
                 if (V['periodBorn'] < EqName['period']) & (
                         EqName['period'] < V['periodDied']):  # periodDied = 주벌시기 이므로, 해당 분기를 제외한 기간 동안 생존한 나무
                     if V['periodBorn'] <= 0:  # 원래 있던 나무일 때 currentVolumeTables 에서 참고
-                        vol = next(item for item in currentVolumeTables
+                        prod = next(item for item in currentVolumeTables
                                    if (item['section'] == V['section']) &
                                    (item['spcID'] == V['spcID']) &
                                    (item['currentAge'] == 1 - V['periodBorn']))['data'][EqName['period']]['produced']
-                        line.append(vol)
+                        line.append(prod)
                     else:  # 식재된 나무일 때 면적이 변화) -> futureVolumeTables 에서 참고
-                        vol = next(item for item in futureVolumeTables
+                        age_temp = EqName['period'] - V['periodBorn']
+                        prod = next(item for item in futureVolumeTables
                                    if (item['section'] == V['section']) &
-                                   (item['spcID'] == V['spcID']))['data'][EqName['period'] - V['periodBorn']][
-                            'produced']
-                        line.append(vol)
+                                   (item['spcID'] == V['spcID']))['data'][age_temp]['produced']
+                        line.append(prod)
                 else:
                     line.append(0)
 
@@ -563,17 +572,17 @@ def create_matrix(data):
                 V = Variables[i]
                 if EqName['period'] == V['periodDied']:  # 주벌시기에 해당하는 나무
                     if V['periodBorn'] <= 0:  # 원래 있던 나무일 때 currentVolumeTables 에서 참고
-                        vol = next(item for item in currentVolumeTables
+                        prod = next(item for item in currentVolumeTables
                                    if (item['section'] == V['section']) &
                                    (item['spcID'] == V['spcID']) &
                                    (item['currentAge'] == 1 - V['periodBorn']))['data'][EqName['period']]['produced']
-                        line.append(vol)
+                        line.append(prod)
                     else:  # 식재된 나무일 때 면적이 변화) -> futureVolumeTables 에서 참고
-                        vol = next(item for item in futureVolumeTables
+                        age_temp = EqName['period'] - V['periodBorn']
+                        prod = next(item for item in futureVolumeTables
                                    if (item['section'] == V['section']) &
-                                   (item['spcID'] == V['spcID']))['data'][EqName['period'] - V['periodBorn']][
-                            'produced']
-                        line.append(vol)
+                                   (item['spcID'] == V['spcID']))['data'][age_temp]['produced']
+                        line.append(prod)
                 else:
                     line.append(0)
 
@@ -665,9 +674,10 @@ def create_matrix(data):
             for i in indices:  # 각각의 indices 에 대해서 Variable 을 불러온 뒤, 조건에 맞게 처리.
                 V = Variables[i]
                 if (V['periodBorn'] <= EqName['period']) & (EqName['period'] <= V['periodDied']):
+                    age_temp = EqName['period'] - V['periodBorn']
                     waterCoeff = next(item for item in manager['coeffs']['waterCoeffs']
                                   if (item['section'] == V['section']) &
-                                  (V['spcID'] in item['spcIDs']))['data'][EqName['period'] - V['periodBorn']]
+                                  (V['spcID'] in item['spcIDs']))['data'][age_temp]
                     if (V['periodBorn'] == EqName['period']) | (EqName['period'] == V['periodDied']):
                         waterCoeff = waterCoeff / 2
                     line.append(waterCoeff)
@@ -699,9 +709,10 @@ def create_matrix(data):
                                         (item['currentAge'] == 1 - V['periodBorn']))['data'][EqName['period']][
                             'produced']
                     else:  # 식재된 나무일 때 -> futureVolumeTables 에서 참고
+                        age_temp = EqName['period'] - V['periodBorn']
                         produced = next(item for item in futureVolumeTables
                                         if (item['section'] == V['section']) &
-                                        (item['spcID'] == V['spcID']))['data'][EqName['period'] - V['periodBorn']][
+                                        (item['spcID'] == V['spcID']))['data'][age_temp][
                             'produced']
                 if produced != 0:
                     if EqName['period'] == V['periodDied']:
@@ -737,10 +748,10 @@ def create_matrix(data):
                                         (item['currentAge'] == 1 - V['periodBorn']))['data'][EqName['period']][
                             'produced']
                     else:  # 식재된 나무일 때 -> futureVolumeTables 에서 참고
+                        age_temp = EqName['period'] - V['periodBorn']
                         produced = next(item for item in futureVolumeTables
                                         if (item['section'] == V['section']) &
-                                        (item['spcID'] == V['spcID']))['data'][EqName['period'] - V['periodBorn']][
-                            'produced']
+                                        (item['spcID'] == V['spcID']))['data'][age_temp]['produced']
                 if produced != 0:
                     line.append(manager['coeffs']['costCoeffs']['thinning'])
                 else:
