@@ -1,12 +1,26 @@
+/************************************ ncrdss.jexcel - model ************************************/
 const CELL_WIDTH = 120;
-const CARBONCOEFFS = [1.433102, 1.667497, 1.738947, 1.431354, 2.516572, 2.704444];
+var currentSpeciesSelected = {x1:null,y1:null,x2:null,y2:null}; //
 
-var currentSpeciesSelected = {x1:null,y1:null,x2:null,y2:null}
+var isBaseCompleted = function () {
+    return !table_Base.getData().flat().includes("");
+}
+var isCurrentSpcCompleted = function () {
+    const tableData = table_currentSpc.getData();
+    for (const line of tableData) {
+        if (line.slice(0, 4).includes("") || (line[4] === "" && line[5] === ""))
+            return false;
+    }
+    return true;
+}; // 현재임분정보 테이블이 완료되었는지 확인. 5~6번째 열에 대해서는 둘 중 하나만 채워지면 OK.
+var isForManPlanCompleted = function () {
+    return !table_ForManPlan.getData().flat().includes("")
+}
 
-/*************************************************************************************************
- *                              jExcel OnChange Events
- *************************************************************************************************/
-function checkNumeric(instance, x, y, value) {
+/************************************ ncrdss.jexcel - controller ************************************/
+
+/************************ jExcel OnChange Events ************************/
+function isNumeric(instance, x, y, value) {
     /* 숫자 입력 여부 확인하는 함수.
     *  문자 입력, 혹은 delete 에 의해 공백이 입력되면
     *  해당 table 의 (id_table dictionary 로 참조) cell 을 공백으로
@@ -30,8 +44,8 @@ function checkNumeric(instance, x, y, value) {
         }
     } else
         return true
-}
-function checkNumericNotZero(instance, x, y, value) {
+} // 0을 허용하는 numeric checker
+function isNumericButNotZero(instance, x, y, value) {
     /* 숫자 입력 여부 확인하는 함수.
     *  문자 입력, 혹은 delete 에 의해 공백이 입력되면
     *  해당 table 의 (id_table dictionary 로 참조) cell 을 공백으로
@@ -55,7 +69,7 @@ function checkNumericNotZero(instance, x, y, value) {
         }
     } else
         return true
-}
+} // 0을 허용하지 않는 numeric checker
 function onChangeAddress() {
     table_SpcClasses.deleteColumn(1);
     // table_SpcClasses.insertColumn(1, 1, false, [{title:'수종명', type:'dropdown', source: manager.availableSpc, width:CELL_WIDTH}]);
@@ -65,8 +79,8 @@ var onChange_Base = function(instance, cell, x, y, value) {
     /* 임분 기본 정보 입력 테이블 #table_Base
     *  구역 수, 수종 수, 계획 기간, 시작 연도
     *  값이 변경되었을 때 호출되는 함수 */
-    if (!checkNumeric(instance, x, y, value))
-        return
+    if (!isNumeric(instance, x, y, value))
+        return false;
 
     manager.setBase(table_Base.getData()); // manager 값 업데이트
     var cellName = jexcel.getColumnNameFromId([x,y]);
@@ -78,12 +92,11 @@ var onChange_Base = function(instance, cell, x, y, value) {
     }
     if (cellName == 'C1')
         ""; //TODO : 계획분기 수 설정시 간벌 시나리오 테이블 재설정하는 함수
-    if (!table_Base.getData().flat().includes("")) { // 전부 채워진 경우
-
-        setBgColor(table_Base, style_bg_orig)
-        setBgColor(table_SpcClasses, style_bg_red);
-        //setCellBorderColor(table_Base, style_orig); // BaseTable 레이아웃 업데이트
-        //setCellBorderColor(table_SpcClasses, style_red);
+    if (isBaseCompleted())  // 전부 채워진 경우
+        onCompleteBase();
+    else {
+        manager.completedFlags.table_base = false;
+        setBgColor(table_Base, style_bg_red);
     }
 };
 var onChange_SpcClasses = function(instance, cell, x, y, value) {
@@ -95,12 +108,11 @@ var onChange_SpcClasses = function(instance, cell, x, y, value) {
     var cellName = jexcel.getColumnNameFromId([x,y]);
     if (cellName.includes('B')) { // 수종이 추가되면 차트 그리기
         if (!manager.spcLists.includes(value))
-            return
+            return false;
         else
             manager.setGrowth(); // manager 의 Growth 설정 (예측)
-        for (const spc of chart.series.map(a => a.name)) {
+        for (const spc of chart.series.map(a => a.name))
              chart.get(spc).remove();
-        }
         for (const spc of manager.spcLists) {
             if (spc == "")
                 continue;
@@ -114,17 +126,11 @@ var onChange_SpcClasses = function(instance, cell, x, y, value) {
         }
         chart.redraw();
     }
-    if (!table_SpcClasses.getData().flat().includes("")) { // 전부 채워진 경우
-        updateForManTable(manager.spcLists);
-        updateCurrentSpcTable(manager.spcLists, 'species');
-        updateCarbonCoeffs(manager.spcLists);
-
-        setBgColor(table_SpcClasses, style_bg_orig);
-        setBgColor(table_currentSpc, style_bg_red);
-        setBgColor(table_thinning, style_bg_red);
-        //setCellBorderColor(table_SpcClasses, style_orig); // SpcClass Input 레이아웃 업데이트
-        //setCellBorderColor(table_currentSpc, style_red);
-        //setCellBorderColor(table_thinning, style_red);
+    if (!table_SpcClasses.getData().flat().includes(""))  // 전부 채워진 경우
+        onCompleteSpcClasses();
+    else {
+        manager.completedFlags.table_SpcClasses = false;
+        setBgColor(table_SpcClasses, style_bg_red);
     }
 };
 var onChange_currentSpc = function(instance, cell, x, y, value) {
@@ -133,24 +139,22 @@ var onChange_currentSpc = function(instance, cell, x, y, value) {
     *  값이 변경되었을 때 호출되는 함수 */
     manager.setCurrentSpc(table_currentSpc.getData());
     var cellName = jexcel.getColumnNameFromId([x,y]);
-    if (!cellName.includes('A') && !cellName.includes('B')) { // C D E 열의 경우
-        if (!checkNumericNotZero(instance, x, y, value))
+    if (!cellName.includes('A') && !cellName.includes('B')) { // C D E F 열의 경우
+        if (!isNumericButNotZero(instance, x, y, value))
             return false
     }
-    if (!table_currentSpc.getData().flat().includes("")) { // 전부 채워진 경우
-        setBgColor(table_currentSpc, style_bg_orig);
-        setBgColor(table_ForManPlan, style_bg_red);
-        setBgColor(table_thinning, style_bg_red);
-        //setCellBorderColor(table_currentSpc, style_orig);
-        //setCellBorderColor(table_ForManPlan, style_red);
-        //setCellBorderColor(table_thinning, style_red);
+    if (isCurrentSpcCompleted()) // 전부 채워진 경우
+        onCompleteCurrentSpc();
+    else {
+        manager.completedFlags.table_currentSpc = false;
+        setBgColor(table_currentSpc, style_bg_red);
     }
 };
 var onChange_Thinning = function(instance, cell, x, y, value) {
     /* 산림시업정보 입력 테이블 #table_thinning
     *  
     *  값이 변경되었을 때 호출되는 함수 */
-    if (!checkNumeric(instance, x, y, value))
+    if (!isNumeric(instance, x, y, value))
         return;
     manager.setThinningScenario(table_thinning.getData());
     manager.setForManPlan(table_ForManPlan.getData()); // 시업 정보를 입력하고, 시나리오를 입력하는 경우?
@@ -160,31 +164,60 @@ var onChangeForManPlan = function(instance, cell, x, y, value) {
     *  구역, 수종명, 수확분기, 간벌시나리오
     *  값이 변경되었을 때 호출되는 함수 */
     var cellName = jexcel.getColumnNameFromId([x,y]);
-    if (cellName.includes('C')) { // C 열인 경우만 (수확분기)
-        if (!checkNumeric(instance, x, y, value))
+    if (cellName.includes('C') | cellName.includes('E')) { // C E 열인 경우만 (수확분기 & 밀도)
+        if (!isNumeric(instance, x, y, value))
             return false
     }
-    if (!table_ForManPlan.getData().flat().includes("")) { // 전부 채워진 경우
-        manager.setForManPlan(table_ForManPlan.getData());
-        manager.setCoeffs();
-        setBgColor(table_thinning, style_bg_orig);
-        setBgColor(table_ForManPlan, style_bg_orig);
-        // setCellBorderColor(table_ForManPlan, style_orig);
+    manager.setForManPlan(table_ForManPlan.getData());
+    if (isForManPlanCompleted())  // 전부 채워진 경우
+        onCompleteForManPlan();
+    else {
+        manager.completedFlags.table_ForManPlan = false;
+        setBgColor(table_ForManPlan, style_bg_red);
     }
 };
 var onChange_carbonCoeffs = function(instance, cell, x, y, value) {
     /* 탄소흡수계수 입력 테이블 #table_carbonCoeffs
     *
     *  값이 변경되었을 때 호출되는 함수 */
-    if (!checkNumeric(instance, x, y, value))
+    if (!isNumeric(instance, x, y, value))
         return false
 };
 var onSelectionActive = function(instance, x1, y1, x2, y2, origin) {
     currentSpeciesSelected = Object.assign(currentSpeciesSelected, {x1:x1, y1:y1, x2:x2, y2:y2});
 }; // 현재임분 테이블의 선택된 영역
-/*************************************************************************************************
- *                            jExcel OnChange -> Update Table Shapes
- *************************************************************************************************/
+
+var onCompleteBase = function () {
+    manager.completedFlags.table_base = true;
+    setBgColor(table_Base, style_bg_orig)
+    setBgColor(table_SpcClasses, style_bg_red);
+}
+var onCompleteCurrentSpc = function () {
+    manager.completedFlags.table_currentSpc = true;
+    setBgColor(table_currentSpc, style_bg_orig);
+    setBgColor(table_ForManPlan, style_bg_red);
+    setBgColor(table_thinning, style_bg_red);
+};
+var onCompleteSpcClasses = function () {
+    manager.completedFlags.table_SpcClasses = true;
+    updateForManTable(manager.spcLists);
+    updateCurrentSpcTable(manager.spcLists, 'species');
+    updateCarbonCoeffs(manager.spcLists);
+
+    setBgColor(table_SpcClasses, style_bg_orig);
+    setBgColor(table_currentSpc, style_bg_red);
+    setBgColor(table_thinning, style_bg_red);
+};
+var onCompleteForManPlan = function () {
+    manager.completedFlags.table_thinning = true;
+    manager.completedFlags.table_ForManPlan = true;
+    manager.setForManPlan(table_ForManPlan.getData());
+    manager.setCoeffs();
+    setBgColor(table_thinning, style_bg_orig);
+    setBgColor(table_ForManPlan, style_bg_orig);
+};
+
+/************************ jExcel OnChange -> Update Table Shapes ************************/
 function addCurrentSpcRow() {
     setBgColor(table_currentSpc, style_bg_orig);
     // setCellBorderColor(table_currentSpc, style_orig);
@@ -196,7 +229,7 @@ function deleteCurrentSpcRow() {
     table_currentSpc.deleteRow(currentSpeciesSelected.y1, currentSpeciesSelected.y2 - currentSpeciesSelected.y1 + 1);
     setBgColor(table_currentSpc, style_bg_red);
     // setCellBorderColor(table_currentSpc, style_red);
-}
+} // 현재 임분 조건에 대해서, 범위 선택 후 - 를 하면 그 열들을 삭제
 function updateSpcClasses(num) {
     index_SpcClasses.deleteRow(1,index_SpcClasses.rows.length);
     table_SpcClasses.deleteRow(1,table_SpcClasses.rows.length);
@@ -249,22 +282,22 @@ function updateCarbonCoeffs(species) {
 /*************************************************************************************************
 *                                  jExcel Chart Initialization
 *************************************************************************************************/
-var dataframe_base = [
+var df_base = [
     [ , , , ],
 ];
-var dataframe_SpcClasses = [
+var df_SpcClasses = [
     [ , , ],
 ];
-var dataframe_currentSpc = [
-    [ , , , , ],
+var df_currentSpc = [
+    [ , , , , , ],
 ];
-var dataframe_ForManPlan = [
-    [ , , , , ],
+var df_ForManPlan = [
+    [ , , , , , ],
 ];
-var dataframe_carbonCoeffs = [[]];
+var df_carbonCoeffs = [[]];
 
 var table_Base = jexcel(document.getElementById('table_Base'), {
-    data:dataframe_base,
+    data:df_base,
     colHeaders: ['구역 수', '고려할 수종 수', '계획 분기수', '시작 연도'],
     colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
@@ -294,7 +327,7 @@ var index_SpcClasses = jexcel(document.getElementById('index_SpcClasses'), {
 });
 index_SpcClasses.hideIndex();
 var table_SpcClasses = jexcel(document.getElementById('table_SpcClasses'), {
-    data:dataframe_SpcClasses,
+    data:df_SpcClasses,
     colHeaders: ['수종 구분명', '수종명'],
     colWidths: [ CELL_WIDTH, CELL_WIDTH],
     columns: [
@@ -308,13 +341,15 @@ var table_SpcClasses = jexcel(document.getElementById('table_SpcClasses'), {
 });
 table_SpcClasses.hideIndex();
 
+/************************ currentSpc Table ************************/
 var table_currentSpc = jexcel(document.getElementById('table_currentSpc'), {
-    data:dataframe_currentSpc,
-    colHeaders: ['구역번호', '수종명', '영급', '면적 (ha)', '재적 (m³/ha)'],
-    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
+    data:df_currentSpc,
+    colHeaders: ['구역번호', '수종명', '영급', '면적 (ha)', '재적 (m³/ha)', '밀도 (본수 /ha)'],
+    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
         { type: 'dropdown'},
         { type: 'dropdown'},
+        { type: 'numeric' },
         { type: 'numeric' },
         { type: 'numeric' },
         { type: 'numeric' },
@@ -342,9 +377,9 @@ var index_ForManPlan = jexcel(document.getElementById('index_ForManPlan'), {
 });
 index_ForManPlan.hideIndex();
 var table_ForManPlan = jexcel(document.getElementById('table_ForManPlan'), {
-    data:dataframe_ForManPlan,
-    colHeaders: ['구역', '수종명', '수확분기', '간벌시나리오'],
-    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
+    data:df_ForManPlan,
+    colHeaders: ['구역', '수종명', '수확분기', '간벌시나리오', '밀도 (본 /ha)'],
+    colWidths: [ CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH ],
     columns: [
         {
             type: 'text',
@@ -358,6 +393,7 @@ var table_ForManPlan = jexcel(document.getElementById('table_ForManPlan'), {
         { type: 'dropdown',
             source:['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'X']
         },
+        { type: 'numeric' },
     ],
     onchange:onChangeForManPlan,
     rowResize: true,
@@ -422,7 +458,7 @@ var index_carbonCoeffs = jexcel(document.getElementById('index_carbonCoeffs'), {
 });
 index_carbonCoeffs.hideIndex();
 var table_carbonCoeffs = jexcel(document.getElementById('table_carbonCoeffs'), {
-    data:dataframe_carbonCoeffs,
+    data:df_carbonCoeffs,
     colHeaders: ['coeffs'],
     colWidths: [ CELL_WIDTH ],
     columns: [

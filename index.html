@@ -264,7 +264,7 @@
                 <div id="table_SpcClasses"></div>
             </div>
             <div class="table-wrapper">
-                <h4 class="table-header">현재 임분 정보를 입력해주세요.</h4>
+                <h4 class="table-header">현재 임분 정보를 입력해주세요. 재적과 밀도는 둘 중 하나만 입력해셔도 됩니다.</h4>
                 <div id="table_currentSpc"></div>
                 <button class="table-button add" onclick="addCurrentSpcRow()">+</button>
                 <button class="table-button minus" onclick="deleteCurrentSpcRow()">—</button>
@@ -293,7 +293,7 @@
         </article>
         <article class="article-2 article-full">
             <div class="title-wrapper">
-                <h3 >간벌 시나리오 입력</h3>
+                <h3 >산림시업 정보 입력</h3>
             </div>
             <hr>
             <div class="table-wrapper">
@@ -350,11 +350,25 @@
     <section class="grid">
         <article class="article-1 article-full">
             <div class="title-wrapper">
-                <h3>분기별 환산 가치</h3>
+                <h3>결과 시각화</h3>
             </div>
             <hr>
-            <div class="table-wrapper">
-                <canvas id="ObjectiveBarChart"></canvas>
+
+            <div id="chart-tab-container">
+                <div id="buttons">
+                    <div class="button_container"><a class="chart-showBtn selected" data-id="objFunc">환산 가치</a></div>
+                    <div class="button_container"><a class="chart-showBtn" data-id="volPer">수종별 재적량</a></div>
+                    <div class="button_container"><a class="chart-showBtn" data-id="C">결과 C</a></div>
+                    <div class="button_container"><a class="chart-showBtn" data-id="D">결과 D</a></div>
+                    <div class="button_container"><a class="chart-showBtn" data-id="E">결과 E</a></div>
+                    <p></p>
+                    <p></p>
+                    <p></p>
+                </div>
+            </div>
+            <div id="canvas-container">
+                <canvas class="chart-canvas" id="objectiveFunctionsCanvas" data-id="objFunc"></canvas>
+                <canvas class="chart-canvas hidden" id="volumeGrowthCanvas" data-id="volPer"></canvas>
             </div>
         </article>
     </section>
@@ -373,6 +387,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js" integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw==" crossorigin="anonymous"></script>
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=9f7e3d2efc3436a54d33c3ce2edf211a&libraries=services"></script>
+<script src="js/ncrdss.utils.js"></script>
 <script src="js/ncrdss.address.js"></script>
 <script src="js/ncrdss.data.addressSpecies.js"></script>
 <script src="js/ncrdss.data.coeff.js"></script>
@@ -381,5 +396,6 @@
 <script src="js/ncrdss.jexcel.js"></script>
 <script src="js/ncrdss.layout.js"></script>
 <script src="js/ncrdss.tabs.js"></script>
+<script src="js/ncrdss.results.js"></script>
 <script src="js/regression.min.js"></script>
 </html>
